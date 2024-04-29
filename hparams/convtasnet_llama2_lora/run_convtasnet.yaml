@@ -1,0 +1,126 @@
+seed: 1234
+__set_seed: !apply:torch.manual_seed [!ref <seed>]
+np_rng: !new:numpy.random.RandomState [!ref <seed>]
+
+save_folder: !PLACEHOLDER
+
+# Testing on different cases
+
+case: 2Speech2Audio
+manifest_root: !apply:hparams.configs.get_manifest_path
+    case: !ref <case>
+TaskHandler: !apply:hparams.configs.get_task_handler
+    case: !ref <case>
+special_prompts: !apply:hparams.configs.get_special_prompts
+    case: !ref <case>
+
+# Data
+
+test_pattern: !apply:os.path.join [!ref <manifest_root>, 'test_*k.json']
+test_files: !apply:glob.glob [!ref <test_pattern>]
+
+n_test: 0
+
+prompt_builder: !new:data.datasets.prompt_templates.ShortTemplate
+    acts: ['0', '1', 'D' ,'U']
+    shuffle: true
+    random: true
+    
+prob_gpt_prompt: 1.0
+rand_prompt: true
+rand_tasks: false
+
+ret_src: false
+
+test_set: !new:data.datasets.prompt_mixtures.PromptMixtures
+    manifest_files: !ref <test_files>
+    select_n: !ref <n_test>
+    task_handler: !ref <TaskHandler>
+    rand_tasks: false # depreciated
+    prob_gpt_prompt: 1.0
+    rand_prompt: false
+    prompt_builder: null
+    delta_styles: true
+    special_prompts: !ref <special_prompts>
+    prob_special_prompt: 0.5
+    ret_src: !ref <ret_src>
+
+# Loader
+
+test_loader_opts:
+    batch_size: 1
+    num_workers: 1
+    shuffle: false
+
+# Speedup
+
+mix_prec: true
+mix_dtype: !name:torch.bfloat16 # always
+
+# Model
+
+enc_chan: 512
+bot_chan: 128
+hid_chan: 512
+P: 3
+X: 8
+R: 3
+kernel_size: 16
+kernel_stride: !ref <kernel_size> // 2
+
+Encoder: !new:speechbrain.lobes.models.dual_path.Encoder
+    kernel_size: !ref <kernel_size>
+    out_channels: !ref <enc_chan>
+
+# FiLM
+
+film_mode: 'block'
+film_n_layer: 2
+film_scale: true
+film_where: 'before1x1'
+
+# new!!!
+use_mask: true
+mask_type: 'relu'
+causal: false
+MaskNet: !new:modules.convtasnet_ext.MaskNet
+    N: !ref <enc_chan>
+    B: !ref <bot_chan>
+    H: !ref <hid_chan>
+    P: !ref <P>
+    X: !ref <X>
+    R: !ref <R>
+    C: 1
+    norm_type: 'gLN'
+    causal: !ref <causal>
+    mask_nonlinear: !ref <mask_type>
+    cond_dim: !ref <txt_emb_dim>
+    film_mode: !ref <film_mode>
+    film_n_layer: !ref <film_n_layer>
+    film_scale: !ref <film_scale>
+    film_where: !ref <film_where>
+
+Decoder: !new:speechbrain.lobes.models.dual_path.Decoder
+    in_channels: !ref <enc_chan>
+    out_channels: 1
+    kernel_size: !ref <kernel_size>
+    stride: !ref <kernel_stride>
+    bias: false
+
+txt_emb_dim: 4096
+
+# Everything
+
+modules:
+    encoder: !ref <Encoder>
+    decoder: !ref <Decoder>
+    masknet: !ref <MaskNet>
+
+# Log and save
+
+checkpointer: !new:speechbrain.utils.checkpoints.Checkpointer
+    checkpoints_dir: !ref <save_folder>
+    recoverables:
+        encoder: !ref <Encoder>
+        decoder: !ref <Decoder>
+        masknet: !ref <MaskNet>
