@@ -1,3 +1,4 @@
+<!---
 [![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-24ddc0f5d75046c5622901739e7c5dd533143b0c8e959d652212380cedb1ea36.svg)](https://classroom.github.com/a/UHGdSN-p)
 # E6692 Spring 2024: Final Project
 
@@ -26,3 +27,17 @@ The student must change that name and replace it with the name requested in the 
 ## INSTRUCTIONS for naming the students' repository for the final project with more students. 
 (Students need to use a 4-letter groupID/teamID): 
 * Template: e6692-2024Spring-FinalProject-GroupID-UNI1-UNI2-UNI3. -> Example: e6692-2024Spring-FinalProject-MEME-zz9999-aa9999-aa0000.
+-->
+# Listen, Chat, And Edit
+## Text-Guided Soundscape Modification For Enhanced Auditory Experience
+
+### What is this project about?
+An audio clip can be though of as a linear combination of its constituent sound mixtures, each with a unique semantic descriptor - gender, pitch, tempo, energy, emotion. The idea is to try to edit an audio sample by attenuating each component in the mixture. The amount of attenuation is prompted to the model with a text input that is decoded by an LLM. The decoded embedding produced by the LLM is input to a sound mixture model that attends to each mixture as described by the text promt. The output is an audio which is a combination of the attenuated sound mixtures.
+
+### Implementation
+
+### Instructions to run code
+
+### References
+[Listen, Chat, And Edit](https://arxiv.org/pdf/2402.03710)
+
