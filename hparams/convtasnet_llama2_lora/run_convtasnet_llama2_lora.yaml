@@ -1,0 +1,164 @@
+seed: 1234
+__set_seed: !apply:torch.manual_seed [!ref <seed>]
+np_rng: !new:numpy.random.RandomState [!ref <seed>]
+
+save_folder: !PLACEHOLDER
+
+# Testing on different cases
+
+case: 2Speech2Audio
+manifest_root: !apply:hparams.configs.get_manifest_path
+    case: !ref <case>
+TaskHandler: !apply:hparams.configs.get_task_handler
+    case: !ref <case>
+special_prompts: !apply:hparams.configs.get_special_prompts
+    case: !ref <case>
+
+# Data
+
+test_pattern: !apply:os.path.join [!ref <manifest_root>, 'test_*k.json']
+test_files: !apply:glob.glob [!ref <test_pattern>]
+
+n_test: 0
+
+prompt_builder: !new:data.datasets.prompt_templates.ShortTemplate
+    acts: ['0', '1', 'D' ,'U']
+    shuffle: true
+    random: true
+    
+prob_gpt_prompt: 1.0
+rand_prompt: true
+rand_tasks: false
+
+ret_src: false
+
+test_set: !new:data.datasets.prompt_mixtures.PromptMixtures
+    manifest_files: !ref <test_files>
+    select_n: !ref <n_test>
+    task_handler: !ref <TaskHandler>
+    rand_tasks: false # depreciated
+    prob_gpt_prompt: 1.0
+    rand_prompt: false
+    prompt_builder: null
+    delta_styles: true
+    special_prompts: !ref <special_prompts>
+    prob_special_prompt: 0.5
+    ret_src: !ref <ret_src>
+
+# Loader
+
+test_loader_opts:
+    batch_size: 1
+    num_workers: 1
+    shuffle: false
+
+# Speedup
+
+mix_prec: false
+mix_dtype: !name:torch.bfloat16 # always
+llm_mix_prec: false
+
+# Model
+
+enc_chan: 512
+bot_chan: 128
+hid_chan: 512
+P: 3
+X: 8
+R: 3
+kernel_size: 16
+kernel_stride: !ref <kernel_size> // 2
+
+Encoder: !new:speechbrain.lobes.models.dual_path.Encoder
+    kernel_size: !ref <kernel_size>
+    out_channels: !ref <enc_chan>
+
+# FiLM
+
+film_mode: 'block'
+film_n_layer: 2
+film_scale: true
+film_where: 'before1x1'
+
+# new!!!
+use_mask: true
+mask_type: 'relu'
+causal: false
+MaskNet: !new:modules.convtasnet_ext.MaskNet
+    N: !ref <enc_chan>
+    B: !ref <bot_chan>
+    H: !ref <hid_chan>
+    P: !ref <P>
+    X: !ref <X>
+    R: !ref <R>
+    C: 1
+    norm_type: 'gLN'
+    causal: !ref <causal>
+    mask_nonlinear: !ref <mask_type>
+    cond_dim: !ref <txt_emb_dim>
+    film_mode: !ref <film_mode>
+    film_n_layer: !ref <film_n_layer>
+    film_scale: !ref <film_scale>
+    film_where: !ref <film_where>
+
+Decoder: !new:speechbrain.lobes.models.dual_path.Decoder
+    in_channels: !ref <enc_chan>
+    out_channels: 1
+    kernel_size: !ref <kernel_size>
+    stride: !ref <kernel_stride>
+    bias: false
+
+txt_emb_dim: 4096
+
+# Text encoder
+
+llm_path: /engram/naplab/shared/LLaMA2/huggingface/Llama-2-7b-chat-hf
+
+tokenizer: !apply:transformers.AutoTokenizer.from_pretrained
+    pretrained_model_name_or_path: !ref <llm_path>
+    add_eos_token: !ref <add_eos>
+
+llm: !apply:transformers.AutoModelForCausalLM.from_pretrained
+    pretrained_model_name_or_path: !ref <llm_path>
+
+add_eos: true 
+
+# LoRA
+
+lora_modules: ['q_proj', 'v_proj']
+lora_r: 16
+lora_alpha: !ref <lora_r>
+lora_dropout: 0.05
+
+lora_config: !new:peft.LoraConfig
+    r: !ref <lora_r>
+    lora_alpha: !ref <lora_alpha>
+    target_modules: !ref <lora_modules>
+    lora_dropout: !ref <lora_dropout>
+    bias: "none"
+
+lora_llm: !apply:peft.get_peft_model
+    model: !ref <llm>
+    peft_config: !ref <lora_config>
+
+# Everything
+
+modules:
+    encoder: !ref <Encoder>
+    decoder: !ref <Decoder>
+    masknet: !ref <MaskNet>
+    lora_llm: !ref <lora_llm>
+
+# Log and save
+
+checkpointer: !new:speechbrain.utils.checkpoints.Checkpointer
+    checkpoints_dir: !ref <save_folder>
+    custom_load_hooks:
+        lora_llm: !name:utils.lora_ckpt.load_lora
+    custom_save_hooks:
+        lora_llm: !name:utils.lora_ckpt.save_lora
+    recoverables:
+        encoder: !ref <Encoder>
+        decoder: !ref <Decoder>
+        masknet: !ref <MaskNet>
+        lora_llm: !ref <lora_llm>
