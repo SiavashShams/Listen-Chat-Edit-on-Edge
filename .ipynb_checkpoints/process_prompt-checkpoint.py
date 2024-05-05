@@ -14,6 +14,7 @@ import sys
 import pickle
 import time
 from google.cloud import pubsub_v1
+import os
 
 
 access_token = hf_token
@@ -104,9 +105,11 @@ try:
             prompt_prev = prompt_current
             
         else:
-            print('Nothing to be done. Sleeping..')
-            time.sleep(5)
-            pass
+            # print('Nothing to be done. Sleeping..')
+            print('No change..checking for incoming prompt')
+            os.system('python subscribe_prompt.py')
+            time.sleep(2)
+            
 except KeyboardInterrupt:
     print('Interrupted program!')
     sys.exit(0)
