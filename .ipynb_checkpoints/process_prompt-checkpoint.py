@@ -54,7 +54,14 @@ def read_prompt(prompt, llm=lora_llm, tokenizer=tokenizer, device='cuda'):
 
 
 save_path = './prompts/prompt.pkl'
+## ensure prompt file is initialized to standard value
+with open('./prompts/prompt.pkl','wb') as f:
+    pickle.dump("INIT", f)
+    
+
+
 embedding_path = './embeddings/embedding.pkl'
+
 def load_pkl(path=save_path):
     with open(path, "rb") as file:
         loaded_data = pickle.load(file)
