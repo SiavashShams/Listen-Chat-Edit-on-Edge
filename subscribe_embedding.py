@@ -20,7 +20,7 @@ def store_pkl(data, save_path='./embeddings/embedding.pkl'):
     with open(save_path, "wb") as file:
         pickle.dump(data, file)
 def callback(message: pubsub_v1.subscriber.message.Message) -> None:
-    array = np.frombuffer(message.data)
+    array = np.frombuffer(message.data, dtype=np.float32)
     embedding =array
 
     print(f"Received message shape: {embedding.shape}")
@@ -41,11 +41,13 @@ def gennew_sub():
 
     # Create a new subscription with the same name
     try:
-        subscriber.create_subscription(request={"name": subscription_path,
-            "topic": f'projects/eecse6992-yolov4-tiny-pkk2125/topics/{topic_name}'
-            # "enableExactlyOnceDelivery": True,
-            # "enableMessageOrdering":True
-            })
+        subscriber.create_subscription(
+            request={
+            "name": subscription_path,
+            "topic": f'projects/eecse6992-yolov4-tiny-pkk2125/topics/{topic_name}',
+            "enable_exactly_once_delivery": True,
+            }
+        )
         # print(f"Created new subscription: {subscription_path}")
     except Exception as e:
         print(f"Error creating subscription: {e}")

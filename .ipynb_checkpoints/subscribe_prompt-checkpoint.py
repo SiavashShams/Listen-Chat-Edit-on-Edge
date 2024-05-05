@@ -30,11 +30,13 @@ def gennew_sub():
 
     # Create a new subscription with the same name
     try:
-        subscriber.create_subscription(request={"name": subscription_path,
-            "topic": f'projects/eecse6992-yolov4-tiny-pkk2125/topics/{topic_name}'
-            # "enableExactlyOnceDelivery": True,
-            # "enableMessageOrdering":True
-            })
+        subscriber.create_subscription(
+            request={
+            "name": subscription_path,
+            "topic": f'projects/eecse6992-yolov4-tiny-pkk2125/topics/{topic_name}',
+            "enable_exactly_once_delivery": True,
+            }
+        )
         # print(f"Created new subscription: {subscription_path}")
     except Exception as e:
         print(f"Error creating subscription: {e}")
