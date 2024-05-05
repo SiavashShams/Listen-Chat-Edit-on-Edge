@@ -1,11 +1,11 @@
 from google.cloud import pubsub_v1
 import sys, os
 import pickle
-# from process_prompt import read_prompt
+
 
 project_id = "eecse6992-yolov4-tiny-pkk2125"
-topic_name = "LCCE-inference"
-subscription_name = 'LCCE-inference-sub'
+topic_name = "LCEE_prompt_publish"
+subscription_name = 'LCEE_prompt_publish-sub'
 
 
 # Create a Pub/Sub subscriber client
@@ -13,41 +13,17 @@ subscriber = pubsub_v1.SubscriberClient()
 
 # Define the subscription path
 subscription_path = subscriber.subscription_path(project_id, subscription_name)
-prompt = None
-save_path = './prompts/prompt.pkl'
+
 # Define a message handling function
-def store_pkl(data, path='./prompts/prompt.pkl'):
+save_path = './embeddings/embedding.pkl'
+def store_pkl(data, save_path='./embeddings/embedding.pkl'):
     with open(path, "wb") as file:
         pickle.dump(data, file)
 def callback(message: pubsub_v1.subscriber.message.Message) -> None:
-    print(f"Received message: {message.data.decode('utf-8')}")
-    prompt = message.data.decode('utf-8')
-    store_pkl(prompt, save_path)
+    print(f"Received message shape: {message.data.shape}")
+    embedding = torch.Tensor(message.data)
+    store_pkl(embedding, save_path)
+    print(f"Stored embedding in {save_path}")
     message.ack()
     # Exit the program after receiving the message
     os._exit(0)
-
-# Subscribe to the topic and wait for a message
-streaming_pull_future = subscriber.subscribe(subscription_path, callback=callback)
-
-
-
-
-print(f"Waiting for messages on {subscription_path}...")
-
-try:
-    # Wait for a message to be received or a maximum of 5 seconds
-    streaming_pull_future.result(timeout=5)
-except pubsub_v1.exceptions.TimeoutError:
-    print("No message received within 5 seconds. Exiting...")
-    streaming_pull_future.cancel()
-    os._exit(0)
-except KeyboardInterrupt:
-    streaming_pull_future.cancel()
-    print("Exiting...")
-    os._exit(0)
-
-# print("Generating embedding from extracted prompt...")
-# embedding = read_prompt(prompt)
-# print("Success!")
-

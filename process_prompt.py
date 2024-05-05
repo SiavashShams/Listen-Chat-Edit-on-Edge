@@ -1,3 +1,9 @@
+'''
+This script runs in the background on the cloud - GCP instance
+LLM takes a new prompt subscribed - generates embedding - publishes embedding 
+'''
+
+
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from huggingface_hub import login
@@ -7,6 +13,7 @@ from peft import LoraConfig, get_peft_model
 import sys
 import pickle
 import time
+from google.cloud import pubsub_v1
 
 
 access_token = hf_token
@@ -71,18 +78,31 @@ prompt_prev = "INIT"
 prompt_current = None
 embedding = None
 
+### Publish config
+project_id = "eecse6992-yolov4-tiny-pkk2125"
+topic_name = "LCEE_prompt_publish"
+# Set up the Pub/Sub publisher client
+publisher = pubsub_v1.PublisherClient()
+topic_path = publisher.topic_path(project_id, topic_name)
+
+
 try:
     while(True):
+        
         print('Checking for change in prompt...')
         prompt_current = load_pkl()
         if(prompt_current!=prompt_prev):
             print('Processing new prompt...')
             embedding = read_prompt(prompt_current, device='cpu')
-            with open(embedding_path, 'wb') as f:
-                pickle.dump(embedding, f)
-            print(f'Stored computed embedding at {embedding_path}')
+            # with open(embedding_path, 'wb') as f:
+            #     pickle.dump(embedding, f)
+            # print(f'Stored computed embedding at {embedding_path}')
+            embedding_bytes = embedding.detach().numpy().tobytes()
+            future = publisher.publish(topic_path, embedding_bytes)
+            message_id = future.result()
+            print(f"Published embedding to server with ID: {message_id}\n")
             prompt_prev = prompt_current
-            # print(embedding.shape)
+            
         else:
             print('Nothing to be done. Sleeping..')
             time.sleep(5)
