@@ -54,6 +54,7 @@ def read_prompt(prompt, llm=lora_llm, tokenizer=tokenizer, device='cuda'):
 
 
 save_path = './prompts/prompt.pkl'
+embedding_path = './embeddings/embedding.pkl'
 def load_pkl(path=save_path):
     with open(path, "rb") as file:
         loaded_data = pickle.load(file)
@@ -70,10 +71,13 @@ try:
         if(prompt_current!=prompt_prev):
             print('Processing new prompt...')
             embedding = read_prompt(prompt_current, device='cpu')
+            with open(embedding_path, 'wb') as f:
+                pickle.dump(embedding, f)
+            print(f'Stored computed embedding at {embedding_path}')
             prompt_prev = prompt_current
-            print(embedding.shape)
+            # print(embedding.shape)
         else:
-            print('Sleep enabled')
+            print('Nothing to be done. Sleeping..')
             time.sleep(5)
             pass
 except KeyboardInterrupt:
