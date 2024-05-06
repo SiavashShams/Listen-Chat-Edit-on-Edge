@@ -14,6 +14,8 @@ import sys
 import pickle
 import time
 from google.cloud import pubsub_v1
+import os
+import numpy as np
 
 
 access_token = hf_token
@@ -94,19 +96,23 @@ try:
         if(prompt_current!=prompt_prev):
             print('Processing new prompt...')
             embedding = read_prompt(prompt_current, device='cpu')
-            # with open(embedding_path, 'wb') as f:
-            #     pickle.dump(embedding, f)
-            # print(f'Stored computed embedding at {embedding_path}')
-            embedding_bytes = embedding.detach().numpy().tobytes()
+            print(f'Embedding shape: {embedding.shape}')
+            embedding_bytes = embedding.detach().numpy()
+            embedding_bytes = np.float32(embedding_bytes).tobytes()
+            
             future = publisher.publish(topic_path, embedding_bytes)
             message_id = future.result()
+            
             print(f"Published embedding to server with ID: {message_id}\n")
+            
             prompt_prev = prompt_current
             
         else:
-            print('Nothing to be done. Sleeping..')
-            time.sleep(5)
-            pass
+            # print('Nothing to be done. Sleeping..')
+            print('No change..checking for incoming prompt')
+            os.system('python subscribe_prompt.py')
+            time.sleep(2)
+            
 except KeyboardInterrupt:
     print('Interrupted program!')
     sys.exit(0)
