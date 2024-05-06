@@ -55,3 +55,5 @@ while True:
         print(f"Error: {e}")
 
     time.sleep(10)  # Check for new data every 10 seconds
+
+print("where")
