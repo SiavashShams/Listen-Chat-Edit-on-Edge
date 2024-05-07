@@ -1,3 +1,5 @@
 /weights
 /save
 /hf_token.py
+*.wav
+
