@@ -36,7 +36,14 @@ An audio clip can be though of as a linear combination of its constituent sound 
 
 ### Implementation
 
-### Instructions to run code
+- Deploy Conv-TasNet on the Jetson Nano.
+- Deploy LLAMA 2 on a GCP server
+- Send a prompt to the server. Communication is handled in two methods - one, through SSH and the other, through Pub/Sub service.
+- LLM computed the embedding and publishes back the embedding, which is input to the Conv-TasNet model.
+- The resulting audio mixture is ready to be played!
+
+
+
 
 ### References
 [Listen, Chat, And Edit](https://arxiv.org/pdf/2402.03710)
