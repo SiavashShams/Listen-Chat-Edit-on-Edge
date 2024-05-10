@@ -76,7 +76,9 @@ For a demonstration of the system's capabilities, refer to the `demonstration` f
 - LLM computed the embedding and publishes back the embedding, which is input to the Conv-TasNet model.
 - The resulting audio mixture is ready to be played!
 
-
+###Links
+[Presentation](https://github.com/eecse6692/e6692-2024spring-finalproject-lcee/blob/main/E6692.2022Spring.LCEE.ss6928.pkk2125.presentationFinal.pptx)
+[Report](https://github.com/eecse6692/e6692-2024spring-finalproject-lcee/blob/main/Listen__Chat__and_Edit_on_Edge.pdf)
 
 
 ### References
