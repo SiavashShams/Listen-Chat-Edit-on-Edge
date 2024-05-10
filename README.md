@@ -78,7 +78,10 @@ For a demonstration of the system's capabilities, refer to the `demonstration` f
 
 ### Links
 [Presentation](https://github.com/eecse6692/e6692-2024spring-finalproject-lcee/blob/main/E6692.2022Spring.LCEE.ss6928.pkk2125.presentationFinal.pptx)
+
 [Report](https://github.com/eecse6692/e6692-2024spring-finalproject-lcee/blob/main/Listen__Chat__and_Edit_on_Edge.pdf)
+
+[Demonstration and weights](https://drive.google.com/drive/folders/1nii6XqH76CmakzpZIfK7a5uEbJY-1-zg?usp=sharing)
 
 
 ### References
