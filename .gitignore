@@ -3,3 +3,6 @@
 /hf_token.py
 *.wav
 
+*.xml
+*.iml
+*.pkl
