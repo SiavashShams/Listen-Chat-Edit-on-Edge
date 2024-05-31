@@ -84,5 +84,5 @@ For a demonstration of the system's capabilities, refer to the `demonstration` f
 
 
 ### References
-[Listen, Chat, And Edit](https://arxiv.org/pdf/2402.03710)
+Thanks to the authors of [Listen, Chat, And Edit](https://arxiv.org/pdf/2402.03710) for their amazing work.
 
