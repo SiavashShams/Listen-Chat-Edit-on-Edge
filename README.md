@@ -54,7 +54,7 @@ The student must change that name and replace it with the name requested in the 
 ## Installation
 1. Clone the repository:
    ```bash
-   git clone https://github.com/eecse6692/e6692-2024spring-finalproject-lcee.git
+   git clone https://github.com/SiavashShams/Listen-Chat-Edit-on-Edge.git
    ```
 2. Install required dependencies:
    ```bash
